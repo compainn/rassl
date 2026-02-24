@@ -10,6 +10,51 @@ import random
 import re
 from datetime import datetime, timedelta
 import json
+import threading
+import os
+
+# ============================================
+# ФЕЙКОВЫЙ ВЕБ-СЕРВЕР ДЛЯ RENDER
+# ============================================
+try:
+    from aiohttp import web
+    
+    async def handle_fake_request(request):
+        """Обработчик для любого пути - возвращает что бот жив"""
+        return web.Response(
+            text="🤖 Telegram Bot is running!",
+            content_type='text/plain'
+        )
+    
+    def run_fake_server():
+        """Запускает фейковый веб-сервер в отдельном потоке"""
+        app = web.Application()
+        
+        # Обрабатываем корень и /health для пингов
+        app.router.add_get('/', handle_fake_request)
+        app.router.add_get('/health', handle_fake_request)
+        app.router.add_get('/ping', handle_fake_request)
+        
+        # Render дает порт через переменную окружения PORT
+        port = int(os.environ.get('PORT', 8080))
+        
+        print(f"🌐 Запуск фейкового веб-сервера на порту {port}...")
+        web.run_app(app, host='0.0.0.0', port=port)
+    
+    # Запускаем сервер в фоне
+    server_thread = threading.Thread(target=run_fake_server, daemon=True)
+    server_thread.start()
+    print("✅ Фейковый веб-сервер запущен в фоновом режиме")
+    
+except ImportError:
+    print("⚠️ aiohttp не установлен, фейковый сервер не работает")
+    print("💡 Установи: pip install aiohttp")
+except Exception as e:
+    print(f"⚠️ Ошибка запуска фейкового сервера: {e}")
+
+# ============================================
+# ТВОЙ ОСНОВНОЙ КОД (БЕЗ ИЗМЕНЕНИЙ)
+# ============================================
 
 from config import TOKEN, SYSTEM_API_ID, SYSTEM_API_HASH, ADMIN_PASSWORD
 from models import (
@@ -1893,6 +1938,7 @@ async def run_mailing(user_id, user):
 async def main():
     await init_db()
     print("✅ Бот запущен")
+    print("🌐 Фейковый веб-сервер активен - Render будет доволен")
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
@@ -1903,4 +1949,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\n❗ Бот отключен")
     except Exception as e:
-        print(f"❌\n Ошибка запуска: {e}")
+        print(f"❌ Ошибка запуска: {e}")
