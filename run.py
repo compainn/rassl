@@ -10,61 +10,40 @@ import random
 import re
 from datetime import datetime, timedelta
 import json
-import threading
 import os
 
 # ============================================
-# ФЕЙКОВЫЙ ВЕБ-СЕРВЕР ДЛЯ RENDER (ИСПРАВЛЕННЫЙ)
-# ============================================try:
-from aiohttp import web
+# ФЕЙКОВЫЙ ВЕБ-СЕРВЕР (В ТОМ ЖЕ ПОТОКЕ)
+# ============================================
+try:
+    from aiohttp import web
     
-async def handle_fake_request(request):
-    """Простой обработчик"""
-    return web.Response(
-        text="🤖 Telegram Bot is running!",
-        content_type='text/plain'
-        )
-    
-    def run_fake_server():
-        """Запускает фейковый сервер в отдельном потоке"""
-        # Создаем новый цикл событий для потока
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
+    async def run_fake_server():
+        """Запускает фейковый сервер в том же цикле событий"""
         app = web.Application()
-        app.router.add_get('/', handle_fake_request)
-        app.router.add_get('/health', handle_fake_request)
-        app.router.add_get('/ping', handle_fake_request)
+        
+        async def handle(request):
+            return web.Response(text="🤖 Bot is running!")
+        
+        app.router.add_get('/', handle)
+        app.router.add_get('/health', handle)
+        app.router.add_get('/ping', handle)
         
         port = int(os.environ.get('PORT', 8080))
         
-        try:
-            # Запускаем без обработки сигналов
-            runner = web.AppRunner(app, handle_signals=False)
-            loop.run_until_complete(runner.setup())
-            site = web.TCPSite(runner, '0.0.0.0', port)
-            loop.run_until_complete(site.start())
-            
-            print(f"🌐 Фейковый сервер запущен на порту {port}")
-            loop.run_forever()
-        except Exception as e:
-            print(f"⚠️ Ошибка фейкового сервера: {e}")
-        finally:
-            try:
-                loop.run_until_complete(runner.cleanup())
-            except:
-                pass
+        runner = web.AppRunner(app, handle_signals=False)
+        await runner.setup()
+        site = web.TCPSite(runner, '0.0.0.0', port)
+        await site.start()
+        
+        print(f"🌐 Фейковый сервер запущен на порту {port}")
+        return runner
     
-    # Запускаем сервер в фоне
-    server_thread = threading.Thread(target=run_fake_server, daemon=True)
-    server_thread.start()
-    print("✅ Фейковый веб-сервер запущен в фоне")
+    FAKE_SERVER_RUNNER = None
     
-            except ImportError:
-                print("⚠️ aiohttp не установлен, фейковый сервер не работает")
-                print("💡 Установите: pip install aiohttp")
-            except Exception as e:
-                print(f"⚠️ Ошибка запуска фейкового сервера: {e}")
+except ImportError:
+    print("⚠️ aiohttp не установлен")
+    FAKE_SERVER_RUNNER = None
 
 from config import TOKEN, SYSTEM_API_ID, SYSTEM_API_HASH, ADMIN_PASSWORD
 from models import (
