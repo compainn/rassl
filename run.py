@@ -1926,8 +1926,14 @@ async def run_mailing(user_id, user):
 
 async def main():
     await init_db()
+    
+    # Запускаем фейковый сервер
+    if 'run_fake_server' in dir():
+        asyncio.create_task(run_fake_server())
+    
     print("✅ Бот запущен")
-    print("🌐 Фейковый веб-сервер активен - Render будет доволен")
+    print("🌐 Фейковый веб-сервер активен")
+    
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
