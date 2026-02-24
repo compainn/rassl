@@ -1927,16 +1927,30 @@ async def run_mailing(user_id, user):
 async def main():
     await init_db()
     
-    # Запускаем фейковый сервер
+    # 1. СНАЧАЛА запускаем фейковый сервер
+    fake_server_task = None
     if 'run_fake_server' in dir():
-        asyncio.create_task(run_fake_server())
+        fake_server_task = asyncio.create_task(run_fake_server())
+        print("🌐 Запускаем фейковый сервер...")
+        # Даем серверу время запуститься
+        await asyncio.sleep(2)
     
-    print("✅ Бот запущен")
-    print("🌐 Фейковый веб-сервер активен")
+    print("✅ Фейковый сервер должен быть запущен")
     
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
-
+    # 2. Пробуем запустить бота
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+        await asyncio.sleep(1)
+        
+        print("✅ Бот запускается...")
+        await dp.start_polling(bot)
+    except Exception as e:
+        print(f"❌ Ошибка бота: {e}")
+        print("🌐 Фейковый сервер продолжает работать на порту")
+        # Держим процесс живым, даже если бот упал
+        while True:
+            await asyncio.sleep(60)
+            print("🌐 Фейковый сервер все еще работает...")
 
 if __name__ == "__main__":
     try:
@@ -1944,4 +1958,9 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\n❗ Бот отключен")
     except Exception as e:
-        print(f"❌ Ошибка запуска: {e}")
+        print(f"❌ Ошибка: {e}")
+        # Не даем процессу умереть
+        import time
+        while True:
+            time.sleep(60)
+            print("⚠️ Процесс поддерживается для фейкового сервера")
