@@ -60,11 +60,11 @@ async def handle_fake_request(request):
     server_thread.start()
     print("✅ Фейковый веб-сервер запущен в фоне")
     
-except ImportError:
-    print("⚠️ aiohttp не установлен, фейковый сервер не работает")
-    print("💡 Установите: pip install aiohttp")
-except Exception as e:
-    print(f"⚠️ Ошибка запуска фейкового сервера: {e}")
+            except ImportError:
+                print("⚠️ aiohttp не установлен, фейковый сервер не работает")
+                print("💡 Установите: pip install aiohttp")
+            except Exception as e:
+                print(f"⚠️ Ошибка запуска фейкового сервера: {e}")
 
 from config import TOKEN, SYSTEM_API_ID, SYSTEM_API_HASH, ADMIN_PASSWORD
 from models import (
