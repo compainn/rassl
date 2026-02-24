@@ -16,13 +16,13 @@ import os
 # ============================================
 # ФЕЙКОВЫЙ ВЕБ-СЕРВЕР ДЛЯ RENDER (ИСПРАВЛЕННЫЙ)
 # ============================================try:
-    from aiohttp import web
+from aiohttp import web
     
-    async def handle_fake_request(request):
-        """Простой обработчик"""
-        return web.Response(
-            text="🤖 Telegram Bot is running!",
-            content_type='text/plain'
+async def handle_fake_request(request):
+    """Простой обработчик"""
+    return web.Response(
+        text="🤖 Telegram Bot is running!",
+        content_type='text/plain'
         )
     
     def run_fake_server():
